@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Cricket Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url("https://png.pngtree.com/thumb_back/fh260/background/20230524/pngtree-the-cricket-trophy-on-a-stadium-standing-in-night-light-image_2612696.jpg");
+        }
+
+        #game {
+            text-align: center;
+            background-color: #d9dbb7;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        input {
+            padding: 5px;
+            margin-right: 10px;
+            width: 60px;
+            text-align: center;
+        }
+
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #a3a929;
+            color: rgb(255, 255, 255);
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        #summary {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="game">
+        
+        <h1>Hand Cricket Game</h1>
+        <button id="toss-btn" class="button">Toss</button>
+        <div id="toss-result"></div>
+        <button id="play-btn" class="button" style="display:none;">Play</button>
+        <div id="result"></div>
+        <div id="summary"></div>
+        <label for="runs">Enter runs to score:</label>
+        <input type="number" id="runs">
+        <label for="overs">Overs:</label>
+        <input type="number" id="overs">
+        <label for="wickets">Wickets:</label>
+        <input type="number" id="wickets">
+        
+    </div>
+
+    <script>
+        const tossButton = document.getElementById('toss-btn');
+        const playButton = document.getElementById('play-btn');
+        const runsInput = document.getElementById('runs');
+        const oversInput = document.getElementById('overs');
+        const wicketsInput = document.getElementById('wickets');
+        const tossResultDiv = document.getElementById('toss-result');
+        const resultDiv = document.getElementById('result');
+        const summaryDiv = document.getElementById('summary');
+
+        let playerScore = 0;
+        let computerScore = 0;
+        let currentPlayer = 'player';
+        let oversRemaining = 0;
+        let wicketsRemaining = 0;
+        let isGameOver = false;
+
+        tossButton.addEventListener('click', toss);
+
+        function toss() {
+            const tossResult = Math.random() < 0.5 ? 'heads' : 'tails'; // Random toss result
+            const playerChoice = prompt("Choose heads or tails:");
+
+            if (!playerChoice) {
+                return;
+            }
+
+            tossResultDiv.innerHTML = `Toss result: ${tossResult}`;
+
+            if (playerChoice.toLowerCase() === tossResult) {
+                tossResultDiv.innerHTML += `<br>You won the toss!`;
+                let decision = confirm("You won the toss! Do you want to bat?");
+
+                if (decision) {
+                    tossResultDiv.innerHTML += `<br>You chose to bat.`;
+                    currentPlayer = 'player';
+                } else {
+                    tossResultDiv.innerHTML += `<br>You chose to bowl.`;
+                    currentPlayer = 'computer';
+                }
+
+                oversRemaining = parseInt(oversInput.value);
+                wicketsRemaining = parseInt(wicketsInput.value);
+
+                playButton.style.display = 'inline-block';
+                tossButton.disabled = true;
+            } else {
+                tossResultDiv.innerHTML += `<br>You lost the toss! Computer chooses to bat first.`;
+                currentPlayer = 'computer';
+
+                oversRemaining = parseInt(oversInput.value);
+                wicketsRemaining = parseInt(wicketsInput.value);
+
+                playButton.style.display = 'inline-block';
+                tossButton.disabled = true;
+            }
+        }
+
+        playButton.addEventListener('click', playHandCricket);
+
+        function playHandCricket() {
+            if (isGameOver) {
+                alert("Game is over. Please refresh the page to play again.");
+                return;
+            }
+
+            const targetRuns = parseInt(runsInput.value);
+            const overs = parseInt(oversInput.value);
+            const wickets = parseInt(wicketsInput.value);
+
+            if (isNaN(targetRuns) || isNaN(overs) || isNaN(wickets)) {
+                alert("Please enter valid runs, overs, and wickets");
+                return;
+            }
+
+            if (oversRemaining === 0 || wicketsRemaining === 0) {
+                resultDiv.innerHTML = `Overs finished or wickets lost. Game over.`;
+                isGameOver = true;
+                return;
+            }
+
+            const computerRuns = Math.floor(Math.random() * 6) + 1; // Computer randomly selects runs
+
+            if (currentPlayer === 'player') {
+                playerScore += targetRuns;
+                resultDiv.innerHTML = `You scored ${targetRuns} runs!`;
+            } else {
+                computerScore += computerRuns;
+                resultDiv.innerHTML = `Computer scored ${computerRuns} runs!`;
+            }
+
+            updateSummary();
+
+            currentPlayer = (currentPlayer === 'player') ? 'computer' : 'player';
+            oversRemaining--;
+
+            if (oversRemaining === 0 || wicketsRemaining === 0) {
+                if (playerScore === computerScore || playerScore > computerScore) {
+                    resultDiv.innerHTML += `<br><b>You win!</b>`;
+                } else if (computerScore > playerScore) {
+                    resultDiv.innerHTML += `<br><b>Computer wins!</b>`;
+                }
+                isGameOver = true;
+            }
+        }
+
+        function updateSummary() {
+            summaryDiv.innerHTML = `<b>Summary:</b><br>Your score: ${playerScore}<br>Computer's score: ${computerScore}`;
+        }
+
+        function resetGame() {
+            playerScore = 0;
+            computerScore = 0;
+            oversRemaining = parseInt(oversInput.value);
+            wicketsRemaining = parseInt(wicketsInput.value);
+            currentPlayer = 'player';
+            isGameOver = false;
+            resultDiv.innerHTML = '';
+            summaryDiv.innerHTML = '';
+            tossResultDiv.innerHTML = '';
+            playButton.style.display = 'none';
+            tossButton.disabled = false;
+        }
+    </script>
+
+</body>
+
+</html>
